@@ -124,7 +124,8 @@ class GaussianModel:
     @property
     def get_scaling(self):
         return self.scaling_activation(self._scaling)
-    
+
+    # scale 是每个高斯点的 空间范围（半轴）参数，决定了该高斯在三维空间中 沿每个轴的扩散程度。
     @property
     def get_scaling_with_3D_filter(self):
         scales = self.get_scaling
