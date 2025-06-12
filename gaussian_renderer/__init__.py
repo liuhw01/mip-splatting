@@ -57,6 +57,8 @@ def render(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor, 
 
     means3D = pc.get_xyz
     means2D = screenspace_points
+
+    # 改动
     opacity = pc.get_opacity_with_3D_filter
 
     # If precomputed 3d covariance is provided, use it. If not, then it will be computed from
