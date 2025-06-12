@@ -21,6 +21,35 @@ from simple_knn._C import distCUDA2
 from utils.graphics_utils import BasicPointCloud
 from utils.general_utils import strip_symmetric, build_scaling_rotation
 
+
+
+# | 模块                                  | 原始 3DGS                       | Mip-Gaussian 改进                                                            |   |   |          |     |
+# | ----------------------------------- | ----------------------------- | -------------------------------------------------------------------------- | - | - | -------- | --- |
+# | **1. scaling 尺度建模**                 | `scale` 是单独参数，直接参与协方差计算       | 引入 `filter_3D`，做了 anti-aliasing 滤波合成：<br>`scale_eff = sqrt(scale^2 + σ^2)` |   |   |          |     |
+# | **2. opacity 模型**                   | `opacity = sigmoid(opacity)`  | 引入体积调整项：<br>\`opacity\_eff = sigmoid(opacity) \* sqrt(                     | Σ | / | Σ + σ^2I | )\` |
+# | ***3. `compute_3D_filter`**          | ❌无此函数                         | ✅ 添加相机深度感知计算每个点的最小采样距离，转换为 3D 过滤尺度 σ                                       |   |   |          |     |
+# | ***4. `get_scaling_with_3D_filter`** | 直接 `exp(s)`                   | ✅ 改为 √(scale² + σ²)                                                        |   |   |          |     |
+# | ***5. `get_opacity_with_3D_filter`** | 直接 sigmoid(opacity)           | ✅ 考虑 det 占比的补偿因子（上面公式）                                                     |   |   |          |     |
+# | ***6. render 渲染管线**                  | `get_scaling` + `get_opacity` | ✅ 换成 `get_scaling_with_3D_filter` + `get_opacity_with_3D_filter`           |   |   |          |     |
+# | **7. `.ply` 文件读写**                  | 不含 filter\_3D                 | ✅ `.ply` 保存与加载了 `filter_3D`                                                |   |   |          |     |
+# | **8. densify 策略**                   | clone/split 基于 scale 梯度       | ✅ 同样机制，但 scale 改成合成的 √(s²+σ²)，更稳健                                          |   |   |          |     |
+# | **9. reset\_opacity**               | 无特殊处理                         | ✅ 支持基于 filtered opacity 重置并求反 Sigmoid                                      |   |   |          |     |
+
+# ❌ 原始 3DGS 中没有的部分
+    # 传统 3DGS 不具备这些模块：
+    
+    # compute_3D_filter
+    
+    # get_scaling_with_3D_filter
+    
+    # get_opacity_with_3D_filter
+    
+    # .ply 的 filter_3D 字段
+    
+    # opacity reset 的补偿机制
+    
+    # densification 中 scale 与 σ 融合
+
 class GaussianModel:
 
     def setup_functions(self):
