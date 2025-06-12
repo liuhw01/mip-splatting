@@ -217,7 +217,10 @@ class GaussianModel:
         #TODO remove hard coded value
         #TODO box to gaussian transform
         filter_3D = distance / focal_length * (0.2 ** 0.5)
-        self.filter_3D = filter_3D[..., None]
+        
+        # 每个高斯点有一个标量 σ（标准差），但因为高斯是三维的，它会在 get_scaling_with_3D_filter 里被广播成 [N, 3] 维向量与 scale 合成。
+        # self.filter_3D 是 每个高斯点的 3D Anti-Aliasing 滤波尺度 σ 值（向量形式），用于防止 aliasing（走样）并 融合进最终的高斯尺度和不透明度计算中。
+        self.filter_3D = filter_3D[..., None]   # [N, 1]，其中 N 是高斯点的数量
         
     def oneupSHdegree(self):
         if self.active_sh_degree < self.max_sh_degree:
