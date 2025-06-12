@@ -73,6 +73,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         if camera.image_width >= 800:
             highresolution_index.append(index)
 
+    # 改动
     gaussians.compute_3D_filter(cameras=trainCameras)
 
     viewpoint_stack = None
@@ -122,6 +123,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             # subpixel_offset *= 0.0
         else:
             subpixel_offset = None
+        
+        #改动
         render_pkg = render(viewpoint_cam, gaussians, pipe, background, kernel_size=dataset.kernel_size, subpixel_offset=subpixel_offset)
         image, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
 
@@ -161,6 +164,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
                     size_threshold = 20 if iteration > opt.opacity_reset_interval else None
                     gaussians.densify_and_prune(opt.densify_grad_threshold, 0.005, scene.cameras_extent, size_threshold)
+                    
+                    # 改动
                     gaussians.compute_3D_filter(cameras=trainCameras)
 
                 if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
@@ -168,6 +173,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
             if iteration % 100 == 0 and iteration > opt.densify_until_iter:
                 if iteration < opt.iterations - 100:
+
+                    # 改动
                     # don't update in the end of training
                     gaussians.compute_3D_filter(cameras=trainCameras)
         
